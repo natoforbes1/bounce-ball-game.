@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Don't Touch the Walls!</title>
+  <style>
+    body {
+      margin: 0;
+      background: #111;
+      font-family: sans-serif;
+      color: white;
+      text-align: center;
+    }
+    canvas {
+      background: #1e1e1e;
+      display: block;
+      margin: 0 auto;
+    }
+    #restartBtn {
+      display: none;
+      padding: 10px 20px;
+      font-size: 18px;
+      background-color: #e63946;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      margin-top: 20px;
+      cursor: pointer;
+    }
+    #restartBtn:hover {
+      background-color: #c92c38;
+    }
+  </style>
+</head>
+<body>
+  <h1>Don't Let the Ball Touch the Walls!</h1>
+  <canvas id="gameCanvas" width="600" height="400"></canvas>
+  <button id="restartBtn">Restart Game</button>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const restartBtn = document.getElementById('restartBtn');
+
+    let ball, score, gameOver;
+
+    function initGame() {
+      ball = {
+        x: canvas.width / 2,
+        y: canvas.height / 2,
+        radius: 20,
+        speed: 3,
+        dx: 1,
+        dy: 1,
+        color: 'red'
+      };
+      score = 0;
+      gameOver = false;
+      restartBtn.style.display = 'none';
+    }
+
+    function drawBall() {
+      ctx.beginPath();
+      ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+      ctx.fillStyle = ball.color;
+      ctx.fill();
+      ctx.closePath();
+    }
+
+    function updateBall() {
+      ball.x += ball.dx * ball.speed;
+      ball.y += ball.dy * ball.speed;
+
+      if (
+        ball.x - ball.radius <= 0 || ball.x + ball.radius >= canvas.width ||
+        ball.y - ball.radius <= 0 || ball.y + ball.radius >= canvas.height
+      ) {
+        gameOver = true;
+        restartBtn.style.display = 'inline-block';
+      }
+    }
+
+    function drawScore() {
+      ctx.fillStyle = 'white';
+      ctx.font = '20px sans-serif';
+      ctx.fillText(`Score: ${score}`, 10, 25);
+    }
+
+    function drawGameOver() {
+      ctx.fillStyle = 'white';
+      ctx.font = '48px sans-serif';
+      ctx.fillText('Game Over!', canvas.width / 2 - 140, canvas.height / 2);
+    }
+
+    canvas.addEventListener('click', function(e) {
+      if (gameOver) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+
+      const dist = Math.hypot(mouseX - ball.x, mouseY - ball.y);
+
+      if (dist <= ball.radius) {
+        const angle = Math.random() * 2 * Math.PI;
+        ball.dx = Math.cos(angle);
+        ball.dy = Math.sin(angle);
+        ball.speed += 0.5;
+        score++;
+      }
+    });
+
+    restartBtn.addEventListener('click', function () {
+      initGame();
+      gameLoop();
+    });
+
+    function gameLoop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (gameOver) {
+        drawGameOver();
+        drawScore();
+        return;
+      }
+
+      updateBall();
+      drawBall();
+      drawScore();
+      requestAnimationFrame(gameLoop);
+    }
+
+    // Start first game
+    initGame();
+    gameLoop();
+  </script>
+</body>
+</html>
